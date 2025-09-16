@@ -1,5 +1,6 @@
 ﻿using NuGet.Common;
 using System.Threading.Tasks;
+using VRage.Utils;
 
 namespace avaness.PluginLoader.Network
 {
@@ -15,25 +16,25 @@ namespace avaness.PluginLoader.Network
             Log(message.Level, message.Message);
         }
 
-        private NLog.LogLevel ConvertLogLevel(LogLevel level)
+        private MyLogSeverity ConvertLogLevel(LogLevel level)
         {
             switch (level)
             {
                 case LogLevel.Debug:
-                    return NLog.LogLevel.Debug;
+                    return MyLogSeverity.Debug;
                 case LogLevel.Verbose:
-                    return NLog.LogLevel.Debug;
+                    return MyLogSeverity.Debug;
                 case LogLevel.Information:
-                    return NLog.LogLevel.Info;
+                    return MyLogSeverity.Info;
                 case LogLevel.Minimal:
-                    return NLog.LogLevel.Info;
+                    return MyLogSeverity.Info;
                 case LogLevel.Warning:
-                    return NLog.LogLevel.Warn;
+                    return MyLogSeverity.Warning;
                 case LogLevel.Error:
-                    return NLog.LogLevel.Error;
+                    return MyLogSeverity.Error;
             }
 
-            return NLog.LogLevel.Info;
+            return MyLogSeverity.Info;
         }
 
         public Task LogAsync(LogLevel level, string data)

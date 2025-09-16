@@ -1,11 +1,11 @@
 ﻿using Microsoft.CodeAnalysis;
-using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using VRage.Utils;
 
 namespace avaness.PluginLoader.Compiler
 {
@@ -31,7 +31,7 @@ namespace avaness.PluginLoader.Compiler
             sb.AppendLine("Assembly References");
             sb.AppendLine(line);
 
-            LogLevel level = LogLevel.Info;
+            var level = MyLogSeverity.Warning;
             try
             {
                 foreach (Assembly a in loadedAssemblies)
@@ -40,7 +40,10 @@ namespace avaness.PluginLoader.Compiler
                     AssemblyName name = a.GetName();
                     if (name.Name == harmonyInfo.Name && name.Version != harmonyInfo.Version)
                     {
-                        LogFile.Warn($"Multiple Harmony assemblies are loaded. Plugin Loader is using {harmonyInfo} but found {name}");
+                        if (MyLog.Default != null)
+                        {
+                            MyLog.Default.Warning($"Multiple Harmony assemblies are loaded. Plugin Loader is using {harmonyInfo} but found {name}");
+                        }
                         continue;
                     }
 
@@ -79,10 +82,12 @@ namespace avaness.PluginLoader.Compiler
             catch (Exception e)
             {
                 sb.Append("Error: ").Append(e).AppendLine();
-                level = LogLevel.Error;
+                level = MyLogSeverity.Error;
             }
-
-            LogFile.WriteLine(sb.ToString(), level, gameLog: false);
+            if (MyLog.Default != null)
+            {
+                MyLog.Default.Log(level, sb.ToString());
+            }
         }
 
         /// <summary>

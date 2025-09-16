@@ -1,59 +1,46 @@
 ﻿using System.IO;
 using VRage.Utils;
-using NLog;
-using NLog.Config;
-using NLog.Layouts;
 
 namespace avaness.PluginLoader
 {
     public static class LogFile
     {
         private const string fileName = "loader.log";
-        private static Logger logger;
-        private static LogFactory logFactory;
+        private static FileStream logger;
 
         public static void Init(string mainPath)
         {
             string file = Path.Combine(mainPath, fileName);
-            LoggingConfiguration config = new LoggingConfiguration();
-            config.AddRuleForAllLevels(new NLog.Targets.FileTarget() 
-            { 
-                DeleteOldFileOnStartup = true,
-                FileName = file,
-                Layout = new SimpleLayout("${longdate} [${level:uppercase=true}] (${threadid}) ${message:withexception=true}")
-            });
-            logFactory = new LogFactory(config);
-            logFactory.ThrowExceptions = false;
-            
-            try
+            if (File.Exists(file))
             {
-                logger = logFactory.GetLogger("PluginLoader");
+                try
+                {
+                    File.Delete(file);
+                }
+                catch { }
             }
-            catch
-            {
-                logger = null;
-            }
+            logger = File.Open(file, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);            
         }
 
         public static void Error(string text, bool gameLog = true)
         {
-            WriteLine(text, LogLevel.Error, gameLog);
+            WriteLine(text, MyLogSeverity.Error, gameLog);
         }
 
         public static void Warn(string text, bool gameLog = true)
         {
-            WriteLine(text, LogLevel.Warn, gameLog);
+            WriteLine(text, MyLogSeverity.Warning, gameLog);
         }
 
-        public static void WriteLine(string text, LogLevel level = null, bool gameLog = true)
+        public static void WriteLine(string text, MyLogSeverity level = MyLogSeverity.Info, bool gameLog = true)
         {
             try
             {
-                if (level == null)
-                    level = LogLevel.Info;
-                logger?.Log(level, text);
-                if(gameLog)
-                    MyLog.Default?.WriteLine($"[PluginLoader] [{level.Name}] {text}");
+                var logText = $"{System.DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [{level}] {text}\r\n";
+                logger?.Write(System.Text.Encoding.UTF8.GetBytes(logText), 0, logText.Length);
+                logger.Flush();
+                if (gameLog)
+                    MyLog.Default?.Log(level, $"[PluginLoader] {text}");
             }
             catch 
             {
@@ -69,12 +56,11 @@ namespace avaness.PluginLoader
 
             try
             {
-                logFactory.Flush();
-                logFactory.Dispose();
+                logger.Flush();
+                logger.Dispose();
             }
             catch { }
             logger = null;
-            logFactory = null;
         }
     }
 }
